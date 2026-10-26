@@ -21,7 +21,7 @@ function KeyExpiryWarning() {
   const days = apiKeyDaysLeft();
   if (days == null || days > KEY_WARN_DAYS) return null;
   return (
-    <p className="bg-err rounded-md px-3 py-2 text-sm">
+    <p className="status-err rounded-md px-3 py-2 text-sm">
       {days > 0
         ? `Garmin-API-Key läuft in ${days} ${days === 1 ? "Tag" : "Tagen"} ab.`
         : "Garmin-API-Key ist abgelaufen."}{" "}
@@ -86,7 +86,7 @@ export function Shell(props: {
           <KeyExpiryWarning />
         )}
         {props.whoop && (
-          <p className={`rounded-md px-3 py-2 text-sm ${props.whoop === "verbunden" ? "bg-ok" : "bg-err"}`}>
+          <p className={`rounded-md px-3 py-2 text-sm ${props.whoop === "verbunden" ? "status-ok" : "status-err"}`}>
             WHOOP: {props.whoop}
           </p>
         )}

@@ -68,7 +68,7 @@ export function Toolbar(props: { from: string; to: string; whoopConnected: boole
       {results && (
         <ul className="flex flex-wrap gap-2 text-xs">
           {results.map((r) => (
-            <li key={r.source} className={`rounded-md px-2 py-1 ${r.ok ? "bg-ok" : "bg-err"}`}>
+            <li key={r.source} className={`rounded-md px-2 py-1 ${r.ok ? "status-ok" : "status-err"}`}>
               <b className="uppercase">{r.source}</b>{" "}
               {r.ok
                 ? Object.entries(r.counts ?? {})
