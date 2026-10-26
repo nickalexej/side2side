@@ -32,6 +32,9 @@ const HR_SOURCE: Record<HrSource, { label: string; title: string; group: string 
   import: { label: "Import", title: "Fremd-Upload – Pulssensor nicht bekannt", group: "vs. Import" },
 };
 
+/** Garmin's wearing position is irrelevant when its heart rate comes from the chest strap. */
+const needsPosition = (w: Workout) => !(w.source === "garmin" && w.hr_source === "strap");
+
 const whoopPosition = (m: WorkoutMatch, positions: PositionMap): Position | null =>
   m.whoop ? (positions.get(positionKey("workout", "whoop", m.whoop.id)) ?? null) : null;
 
@@ -114,7 +117,7 @@ export default async function WorkoutsPage({ searchParams }: { searchParams: Ran
   const onlyWhoop = matches.filter((m) => m.whoop && !m.garmin).length;
   const onlyGarmin = matches.filter((m) => !m.whoop && m.garmin).length;
   const missing = matches.flatMap((m) =>
-    [m.whoop, m.garmin].filter((w): w is Workout => !!w && !pos(w)).map((w) => ({ ref: w.id, device: w.source })),
+    [m.whoop, m.garmin].filter((w): w is Workout => !!w && needsPosition(w) && !pos(w)).map((w) => ({ ref: w.id, device: w.source })),
   );
 
   return (
@@ -164,7 +167,7 @@ export default async function WorkoutsPage({ searchParams }: { searchParams: Ran
                   </header>
                   <div className="mb-2 flex flex-wrap justify-end gap-2">
                     {[m.whoop, m.garmin]
-                      .filter((w): w is Workout => !!w)
+                      .filter((w): w is Workout => !!w && needsPosition(w))
                       .map((w) => (
                         <PositionSelect
                           key={`${w.source}-${pos(w)}`}
