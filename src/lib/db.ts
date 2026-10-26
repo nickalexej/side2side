@@ -98,7 +98,8 @@ const globalForDb = globalThis as unknown as { db?: DatabaseSync };
 export function db(): DatabaseSync {
   if (!globalForDb.db) {
     mkdirSync(DATA_DIR, { recursive: true });
-    const conn = new DatabaseSync(path.join(DATA_DIR, "compare.db"));
+    // DB_FILE lets the demo run on its own database (see scripts/seed-demo.mjs).
+    const conn = new DatabaseSync(path.join(DATA_DIR, process.env.DB_FILE || "compare.db"));
     conn.exec("PRAGMA journal_mode = WAL;");
     conn.exec(SCHEMA);
     migrate(conn);

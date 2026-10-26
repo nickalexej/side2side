@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { lastPull } from "@/lib/compare";
 import { addDays, TIME_ZONE, today } from "@/lib/dates";
+import { env } from "@/lib/env";
 import { apiKeyDaysLeft } from "@/lib/garmin/client";
 import { isConnected } from "@/lib/whoop/client";
 import { Toolbar } from "./Toolbar";
@@ -71,8 +72,19 @@ export function Shell(props: {
             ))}
           </nav>
         </div>
-        <Toolbar from={props.from} to={props.to} whoopConnected={isConnected()} lastPull={formatPull(lastPull())} />
-        <KeyExpiryWarning />
+        <Toolbar
+          from={props.from}
+          to={props.to}
+          whoopConnected={env.demo() || isConnected()}
+          lastPull={formatPull(lastPull())}
+        />
+        {env.demo() ? (
+          <p className="rounded-md bg-surface-2 px-3 py-2 text-sm text-muted">
+            Demo-Modus: synthetische Beispieldaten, keine Verbindung zu WHOOP oder Garmin.
+          </p>
+        ) : (
+          <KeyExpiryWarning />
+        )}
         {props.whoop && (
           <p className={`rounded-md px-3 py-2 text-sm ${props.whoop === "verbunden" ? "bg-ok" : "bg-err"}`}>
             WHOOP: {props.whoop}

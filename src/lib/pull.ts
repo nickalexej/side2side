@@ -1,6 +1,7 @@
 import "server-only";
 import { addDays } from "@/lib/dates";
 import { hasRaw, saveRaw, type Source } from "@/lib/db";
+import { env } from "@/lib/env";
 import * as garmin from "@/lib/garmin/client";
 import { rebuild } from "@/lib/normalize";
 import * as whoop from "@/lib/whoop/client";
@@ -49,6 +50,13 @@ async function pullGarmin(from: string, to: string): Promise<Record<string, numb
 
 /** Pull both providers independently, so one failing does not block the other. */
 export async function pullAll(from: string, to: string): Promise<PullResult[]> {
+  if (env.demo()) {
+    rebuild();
+    return [
+      { source: "whoop", ok: true, counts: { demo: 1 } },
+      { source: "garmin", ok: true, counts: { demo: 1 } },
+    ];
+  }
   const results: PullResult[] = [];
   for (const [source, fn] of [
     ["whoop", pullWhoop],

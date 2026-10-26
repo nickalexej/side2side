@@ -14,6 +14,8 @@ function list(name: string): string[] {
 }
 
 export const env = {
+  /** Demo mode: no API calls, "Daten ziehen" only rebuilds from the seeded demo database. */
+  demo: () => process.env.DEMO === "1",
   garminApiKey: () => required("GARMIN_API_KEY"),
   /** Expiry chosen when creating the key in Garmin Connect (YYYY-MM-DD); the API does not report it. */
   garminApiKeyExpires: () => process.env.GARMIN_API_KEY_EXPIRES ?? null,

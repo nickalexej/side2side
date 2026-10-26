@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "demo:seed": "node scripts/seed-demo.mjs",
+    "demo": "npm run demo:seed && DEMO=1 DB_FILE=demo.db GARMIN_STRAP_IMPORTS=ZWIFT next dev --turbopack"
   },
   "dependencies": {
     "next": "15.5.4",

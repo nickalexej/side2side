@@ -6,6 +6,23 @@ Du trägst ein WHOOP und ein Garmin-Gerät gleichzeitig und willst wissen, wie g
 
 Läuft komplett lokal auf deinem Rechner. Deine Gesundheitsdaten verlassen ihn nicht (außer bei den API-Abrufen bei WHOOP und Garmin selbst).
 
+![Nächte im Vergleich](docs/screenshots/naechte.jpg)
+
+<table>
+<tr>
+<td><img src="docs/screenshots/tage.jpg" alt="Tage und Wochenvergleich"></td>
+<td><img src="docs/screenshots/workouts.jpg" alt="Workouts mit Brustgurt-Referenz"></td>
+<td><img src="docs/screenshots/trends.jpg" alt="Trends"></td>
+</tr>
+<tr>
+<td align="center">Tage &amp; Wochen</td>
+<td align="center">Workouts</td>
+<td align="center">Trends</td>
+</tr>
+</table>
+
+<sub>Screenshots aus dem Demo-Modus mit synthetischen Daten.</sub>
+
 ## Was verglichen wird
 
 | Bereich | Werte |
@@ -26,6 +43,17 @@ Besonderheiten:
 - Node.js 24 (nutzt das eingebaute `node:sqlite`)
 - WHOOP-Mitgliedschaft und eine eigene App im [WHOOP Developer Dashboard](https://developer-dashboard.whoop.com)
 - Garmin-Connect-Konto mit [Personal API Key](https://developer.garmin.com/gc-developer-program/personal/personal-api/)
+
+## Demo ausprobieren
+
+Ohne WHOOP- oder Garmin-Zugang lässt sich side2side mit synthetischen Beispieldaten ansehen:
+
+```bash
+npm install
+npm run demo   # http://localhost:3000
+```
+
+Das legt 42 Tage Beispieldaten in `data/demo.db` an (die echte `data/compare.db` bleibt unberührt). Im Demo-Modus werden keine APIs aufgerufen.
 
 ## Einrichtung
 
