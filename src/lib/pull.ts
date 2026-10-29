@@ -6,9 +6,16 @@ import * as garmin from "@/lib/garmin/client";
 import { rebuild } from "@/lib/normalize";
 import * as whoop from "@/lib/whoop/client";
 
-export type PullResult = { source: Source; ok: boolean; counts?: Record<string, number>; error?: string };
+export type PullResult = {
+  source: Source;
+  ok: boolean;
+  counts?: Record<string, number>;
+  warnings?: string[];
+  error?: string;
+};
+type Pulled = { counts: Record<string, number>; warnings?: string[] };
 
-async function pullWhoop(from: string, to: string): Promise<Record<string, number>> {
+async function pullWhoop(from: string, to: string): Promise<Pulled> {
   // WHOOP filters by timestamps; widen by a day so the night before `from` and the full `to` day are included.
   const start = `${addDays(from, -1)}T12:00:00.000Z`;
   const end = `${addDays(to, 1)}T12:00:00.000Z`;
@@ -22,13 +29,22 @@ async function pullWhoop(from: string, to: string): Promise<Record<string, numbe
   recoveries.forEach((r) => saveRaw("whoop", "recovery", String(r.cycle_id), r));
   sleeps.forEach((s) => saveRaw("whoop", "sleep", s.id, s));
   workouts.forEach((w) => saveRaw("whoop", "workout", w.id, w));
-  return { cycles: cycles.length, recoveries: recoveries.length, sleeps: sleeps.length, workouts: workouts.length };
+  return {
+    counts: { cycles: cycles.length, recoveries: recoveries.length, sleeps: sleeps.length, workouts: workouts.length },
+  };
 }
 
-async function pullGarmin(from: string, to: string): Promise<Record<string, number>> {
+async function pullGarmin(from: string, to: string): Promise<Pulled> {
+  const warnings: string[] = [];
   const dailies = await garmin.fetchDailies(from, to);
   const sleeps = await garmin.fetchSleeps(from, to);
-  const hrv = await garmin.fetchHrv(from, to);
+  // HRV is an add-on metric; a flaky HRV service should not discard the rest of the pull.
+  let hrv: garmin.GarminHrv[] = [];
+  try {
+    hrv = await garmin.fetchHrv(from, to);
+  } catch (e) {
+    warnings.push(e instanceof Error ? e.message : String(e));
+  }
   const activities = await garmin.fetchActivities(from, to);
   // Days without recorded data come back with calendarDate = null; skip them.
   dailies.filter((d) => d.calendarDate).forEach((d) => saveRaw("garmin", "daily", d.calendarDate, d));
@@ -45,7 +61,10 @@ async function pullGarmin(from: string, to: string): Promise<Record<string, numb
       details++;
     }
   }
-  return { dailies: dailies.length, sleeps: sleeps.length, hrv: hrv.length, activities: activities.length, details };
+  return {
+    counts: { dailies: dailies.length, sleeps: sleeps.length, hrv: hrv.length, activities: activities.length, details },
+    warnings: warnings.length ? warnings : undefined,
+  };
 }
 
 /** Pull both providers independently, so one failing does not block the other. */
@@ -63,7 +82,7 @@ export async function pullAll(from: string, to: string): Promise<PullResult[]> {
     ["garmin", pullGarmin],
   ] as const) {
     try {
-      results.push({ source, ok: true, counts: await fn(from, to) });
+      results.push({ source, ok: true, ...(await fn(from, to)) });
     } catch (e) {
       results.push({ source, ok: false, error: e instanceof Error ? e.message : String(e) });
     }

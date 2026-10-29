@@ -32,10 +32,18 @@ async function accessToken(): Promise<string> {
   return jwt;
 }
 
-async function get<T>(path: string, query: Record<string, string | number> = {}): Promise<T | null> {
+// Garmin's gateways occasionally time out (502/503/504); these are transient, so retry with backoff.
+const RETRY_STATUSES = new Set([502, 503, 504]);
+const MAX_RETRIES = 3;
+
+async function get<T>(path: string, query: Record<string, string | number> = {}, attempt = 0): Promise<T | null> {
   const url = new URL(BASE + path);
   for (const [k, v] of Object.entries(query)) url.searchParams.set(k, String(v));
   const res = await fetch(url, { headers: { Authorization: `Bearer ${await accessToken()}` } });
+  if (RETRY_STATUSES.has(res.status) && attempt < MAX_RETRIES) {
+    await new Promise((r) => setTimeout(r, 2 ** attempt * 1000));
+    return get(path, query, attempt + 1);
+  }
   if (res.status === 204) return null;
   if (!res.ok) throw new Error(`Garmin ${path}: HTTP ${res.status}`);
   return (await res.json()) as T;

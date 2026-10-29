@@ -3,7 +3,13 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
-type PullResult = { source: string; ok: boolean; counts?: Record<string, number>; error?: string };
+type PullResult = {
+  source: string;
+  ok: boolean;
+  counts?: Record<string, number>;
+  warnings?: string[];
+  error?: string;
+};
 
 export function Toolbar(props: { from: string; to: string; whoopConnected: boolean; lastPull: string | null }) {
   const router = useRouter();
@@ -75,6 +81,11 @@ export function Toolbar(props: { from: string; to: string; whoopConnected: boole
                     .map(([k, v]) => `${k}: ${v}`)
                     .join(" · ")
                 : r.error}
+              {r.warnings?.map((w) => (
+                <span key={w} className="block">
+                  ⚠ {w}
+                </span>
+              ))}
             </li>
           ))}
         </ul>
