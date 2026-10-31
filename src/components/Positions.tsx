@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { POSITION_LABEL, POSITIONS, type Position } from "@/lib/position-labels";
 
 type Device = "whoop" | "garmin";
@@ -58,9 +58,16 @@ export function BulkPositions(props: { kind: Kind; missing: { ref: string; devic
   const [whoop, setWhoop] = useState<Position>("bicep");
   const [garmin, setGarmin] = useState<Position>("bicep");
   const [busy, setBusy] = useState(false);
+  // Start hidden so SSR and first client render match; real value is read from localStorage after mount.
+  const [dismissed, setDismissed] = useState(true);
+  const storageKey = `bulk-positions-dismissed:${props.kind}`;
   const count = (d: Device) => props.missing.filter((m) => m.device === d).length;
 
-  if (props.missing.length === 0) return null;
+  useEffect(() => {
+    setDismissed(localStorage.getItem(storageKey) === "1");
+  }, [storageKey]);
+
+  if (props.missing.length === 0 || dismissed) return null;
 
   async function apply() {
     setBusy(true);
@@ -94,13 +101,24 @@ export function BulkPositions(props: { kind: Kind; missing: { ref: string; devic
   );
 
   return (
-    <section className="card flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+    <section className="card relative flex flex-wrap items-center gap-x-4 gap-y-2 pr-10 text-sm">
       <span className="font-medium">Tragposition nachtragen</span>
       <span className="text-xs text-muted">für alle im Zeitraum ohne Angabe:</span>
       {picker("whoop", whoop, setWhoop)}
       {picker("garmin", garmin, setGarmin)}
       <button onClick={apply} disabled={busy} className="btn">
         {busy ? "Speichere …" : "Übernehmen"}
+      </button>
+      <button
+        onClick={() => {
+          localStorage.setItem(storageKey, "1");
+          setDismissed(true);
+        }}
+        aria-label="Hinweis schließen"
+        title="Schließen"
+        className="absolute right-3 top-2 text-lg leading-none text-muted hover:text-white"
+      >
+        ×
       </button>
     </section>
   );
